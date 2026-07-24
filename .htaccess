@@ -36,5 +36,3 @@ RewriteRule . index.php [L]
 
 ErrorDocument 403 '<center><h3>You do not have permission.</h3></center>'
 ErrorDocument 404 '<center><h3>You do not have permission.</h3></center>'
-
-AddType application/x-httpd-php .tpl
